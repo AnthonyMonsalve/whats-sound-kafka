@@ -1,11 +1,12 @@
 version: "3.8"
 
 services:
-  kafka:
+  kafka-testing:
     image: apache/kafka:4.0.0
-    container_name: kafka
+    container_name: kafka-testing
     ports:
-      - "9092:9092"
+      - "9025:9025"  # Puerto para el broker
+      - "9029:9029"  # Puerto para el controller
     environment:
       # KRaft (single node: broker + controller)
       KAFKA_NODE_ID: 1
@@ -13,11 +14,11 @@ services:
 
       # Listeners
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_LISTENERS: "PLAINTEXT://:9025,CONTROLLER://:9029"  # Puerto para broker y controller
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://10.245.0.140:9025" # Nombre del contenedor en vez de localhost
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-testing:9029"  # Puerto del controller
 
       # Almacenamiento (el volumen se mapea abajo)
       KAFKA_LOG_DIRS: "/var/lib/kafka/data"
@@ -32,6 +33,12 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     volumes:
       - kafka-data:/var/lib/kafka/data
+    networks:
+      - ip_aquila_network
 
 volumes:
   kafka-data:
+
+networks:
+  ip_aquila_network:
+    external: true
